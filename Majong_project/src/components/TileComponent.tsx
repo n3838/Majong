@@ -20,21 +20,37 @@ const TileComponent: React.FC<TileComponentProps> = ({
     large: "w-16 h-20",
   };
 
-  const getImageUrl = () => {
-    const type = tile.type.charAt(0).toUpperCase() + tile.type.slice(1);
-
-    if (tile.type === "honor") {
-      const value =
-        String(tile.value).charAt(0).toUpperCase() +
-        String(tile.value).slice(1);
-      return `/Black/${type}-${value}.png`; // 例: /Black/Honor-East.png
-    } else {
-      const value = tile.value;
-      return `/Black/${type}${value}.png`; // 例: /Black/Man1.png
+  const getFileName = () => {
+    switch (tile.type) {
+      case "man":
+        return `Man${tile.value}.png`;
+      case "pin":
+        return `Pin${tile.value}.png`;
+      case "sou":
+        return `Sou${tile.value}.png`;
+      case "honor":
+        switch (tile.value) {
+          case "east":
+            return "Ton.png";
+          case "south":
+            return "Nan.png";
+          case "west":
+            return "Shaa.png";
+          case "north":
+            return "Pei.png";
+          case "white":
+            return "Haku.png";
+          case "green":
+            return "Hatsu.png";
+          case "red":
+            return "Chun.png";
+        }
     }
+    return ""; // 見つからない場合
   };
 
-  const imageUrl = getImageUrl();
+  // ここを修正しました
+  const imageUrl = `/Regular/${getFileName()}`;
 
   return (
     <div
