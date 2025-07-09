@@ -6,6 +6,10 @@ import {
   HonorType,
 } from "../types/mahjong";
 
+// ==============================================================================
+// ユーティリティ関数
+// ==============================================================================
+
 const tileToId = (tile: {
   type: TileType;
   value: number | HonorType;
@@ -51,9 +55,174 @@ const getTileCounts = (tiles: Tile[]): Record<string, number> => {
   return counts;
 };
 
-// --- ここからが新しいシャンテン数計算ロジック ---
+const getAllPossibleTiles = (): Tile[] => {
+  const tiles: Tile[] = [];
+  const suits: TileType[] = ["man", "pin", "sou"];
+  suits.forEach((suit) => {
+    for (let i = 1; i <= 9; i++) tiles.push(createTile(suit, i));
+  });
+  const honors: HonorType[] = [
+    "east",
+    "south",
+    "west",
+    "north",
+    "white",
+    "green",
+    "red",
+  ];
+  honors.forEach((honor) => tiles.push(createTile("honor", honor)));
+  return tiles;
+};
 
-// 国士無双のシャンテン数を計算
+// ==============================================================================
+// シャンテン数計算ロジック
+// ==============================================================================
+
+/**
+ * 通常手の面子・搭子を抜き出す再帰関数
+ */
+const findBestCombination = (
+  counts: number[],
+  mentsu: number,
+  taatsu: number
+): number => {
+  let currentShanten = 8 - mentsu * 2 - taatsu;
+
+  const i = counts.findIndex((c) => c > 0);
+  if (i === -1 || mentsu + taatsu >= 4) {
+    return currentShanten;
+  }
+
+  // Path 1: 刻子として抜き出す
+  if (counts[i] >= 3) {
+    counts[i] -= 3;
+    currentShanten = Math.min(
+      currentShanten,
+      findBestCombination(counts, mentsu + 1, taatsu)
+    );
+    counts[i] += 3; // バックトラック
+  }
+
+  // Path 2: 順子として抜き出す
+  if (i < 27 && i % 9 <= 6 && counts[i + 1] > 0 && counts[i + 2] > 0) {
+    counts[i]--;
+    counts[i + 1]--;
+    counts[i + 2]--;
+    currentShanten = Math.min(
+      currentShanten,
+      findBestCombination(counts, mentsu + 1, taatsu)
+    );
+    counts[i]++;
+    counts[i + 1]++;
+    counts[i + 2]++; // バックトラック
+  }
+
+  // Path 3: 搭子として抜き出す
+  if (mentsu + taatsu < 4) {
+    // 対子
+    if (counts[i] >= 2) {
+      counts[i] -= 2;
+      currentShanten = Math.min(
+        currentShanten,
+        findBestCombination(counts, mentsu, taatsu + 1)
+      );
+      counts[i] += 2;
+    }
+    // 両面・嵌張
+    if (i < 27 && i % 9 <= 7 && counts[i + 1] > 0) {
+      counts[i]--;
+      counts[i + 1]--;
+      currentShanten = Math.min(
+        currentShanten,
+        findBestCombination(counts, mentsu, taatsu + 1)
+      );
+      counts[i]++;
+      counts[i + 1]++;
+    }
+    // 辺張
+    if (i < 27 && i % 9 <= 6 && counts[i + 2] > 0) {
+      counts[i]--;
+      counts[i + 2]--;
+      currentShanten = Math.min(
+        currentShanten,
+        findBestCombination(counts, mentsu, taatsu + 1)
+      );
+      counts[i]++;
+      counts[i + 2]++;
+    }
+  }
+
+  // Path 4: この牌を孤立牌として扱う
+  counts[i]--;
+  currentShanten = Math.min(
+    currentShanten,
+    findBestCombination(counts, mentsu, taatsu)
+  );
+  counts[i]++; // バックトラック
+
+  return currentShanten;
+};
+
+/**
+ * 通常手のシャンテン数を計算する
+ */
+const getNormalShanten = (hand: Tile[]): number => {
+  const tileToIndex = (tile: Tile): number => {
+    if (tile.type === "man") return (tile.value as number) - 1;
+    if (tile.type === "pin") return (tile.value as number) - 1 + 9;
+    if (tile.type === "sou") return (tile.value as number) - 1 + 18;
+    const honorMap: Record<HonorType, number> = {
+      east: 27,
+      south: 28,
+      west: 29,
+      north: 30,
+      white: 31,
+      green: 32,
+      red: 33,
+    };
+    return honorMap[tile.value as HonorType];
+  };
+  const initialCounts = new Array(34).fill(0);
+  hand.forEach((tile) => initialCounts[tileToIndex(tile)]++);
+
+  let minShanten = 8;
+
+  // Case 1: 雀頭なし（ヘッドレス）で計算
+  minShanten = Math.min(
+    minShanten,
+    findBestCombination([...initialCounts], 0, 0)
+  );
+
+  // Case 2: 雀頭候補を全て試す
+  for (let i = 0; i < 34; i++) {
+    if (initialCounts[i] >= 2) {
+      const tempCounts = [...initialCounts];
+      tempCounts[i] -= 2; // 雀頭を抜く
+      // 雀頭があるのでシャンテン数の基本値-1
+      minShanten = Math.min(
+        minShanten,
+        findBestCombination(tempCounts, 0, 0) - 1
+      );
+    }
+  }
+
+  return minShanten;
+};
+
+/**
+ * 七対子のシャンテン数を計算する
+ */
+const getChiitoitsuShanten = (counts: Record<string, number>): number => {
+  let pairs = 0;
+  for (const id in counts) {
+    pairs += Math.floor(counts[id] / 2);
+  }
+  return 6 - pairs;
+};
+
+/**
+ * 国士無双のシャンテン数を計算する
+ */
 const getKokushiShanten = (counts: Record<string, number>): number => {
   const terminalsAndHonors = new Set([
     "man-1",
@@ -81,157 +250,28 @@ const getKokushiShanten = (counts: Record<string, number>): number => {
   return hasPair ? 12 - uniqueTypes : 13 - uniqueTypes;
 };
 
-// 七対子のシャンテン数を計算
-const getChiitoitsuShanten = (counts: Record<string, number>): number => {
-  let pairs = 0;
-  for (const id in counts) {
-    if (counts[id] >= 2) pairs++;
-  }
-  return 6 - pairs;
-};
-
-// 通常手のシャンテン数を計算する再帰関数
-const calculateNormalShantenRecursive = (
-  hand: Tile[],
-  mentsu: number,
-  taatsu: number
-): number => {
-  if (hand.length === 0) return 8 - mentsu * 2 - taatsu;
-
-  let minShanten = 8 - mentsu * 2 - taatsu;
-  const t1 = hand[0];
-
-  // 1. 刻子として抜き出す
-  if (hand.length >= 3 && hand[1].id === t1.id && hand[2].id === t1.id) {
-    minShanten = Math.min(
-      minShanten,
-      calculateNormalShantenRecursive(hand.slice(3), mentsu + 1, taatsu)
-    );
-  }
-
-  // 2. 順子として抜き出す
-  if (t1.type !== "honor") {
-    const t2Index = hand.findIndex(
-      (t) => t.type === t1.type && t.value === (t1.value as number) + 1
-    );
-    if (t2Index !== -1) {
-      const t3Index = hand.findIndex(
-        (t) => t.type === t1.type && t.value === (t1.value as number) + 2
-      );
-      if (t3Index !== -1) {
-        const nextHand = [...hand];
-        nextHand.splice(t3Index, 1);
-        nextHand.splice(t2Index, 1);
-        nextHand.splice(0, 1);
-        minShanten = Math.min(
-          minShanten,
-          calculateNormalShantenRecursive(nextHand, mentsu + 1, taatsu)
-        );
-      }
-    }
-  }
-
-  // 3. 塔子として抜き出す
-  // ペア
-  if (hand.length >= 2 && hand[1].id === t1.id) {
-    if (mentsu * 2 + taatsu < 8) {
-      minShanten = Math.min(
-        minShanten,
-        calculateNormalShantenRecursive(hand.slice(2), mentsu, taatsu + 1)
-      );
-    }
-  }
-  // カンチャン・ペンチャン
-  if (t1.type !== "honor") {
-    for (let diff = 1; diff <= 2; diff++) {
-      const t2Index = hand.findIndex(
-        (t) => t.type === t1.type && t.value === (t1.value as number) + diff
-      );
-      if (t2Index !== -1) {
-        if (mentsu * 2 + taatsu < 8) {
-          const nextHand = [...hand];
-          nextHand.splice(t2Index, 1);
-          nextHand.splice(0, 1);
-          minShanten = Math.min(
-            minShanten,
-            calculateNormalShantenRecursive(nextHand, mentsu, taatsu + 1)
-          );
-        }
-      }
-    }
-  }
-
-  // 4. 何もせず、1枚を孤立牌として扱う
-  minShanten = Math.min(
-    minShanten,
-    calculateNormalShantenRecursive(hand.slice(1), mentsu, taatsu)
-  );
-
-  return minShanten;
-};
-
-// 通常手のシャンテン数を計算するメイン関数
-const getNormalShanten = (hand: Tile[]): number => {
-  let minShanten = 8;
-  const sortedHand = sortTiles(hand);
-  const counts = getTileCounts(hand);
-
-  // 雀頭候補をすべて試す
-  for (const id in counts) {
-    if (counts[id] >= 2) {
-      const handWithoutPair = [...sortedHand];
-      handWithoutPair.splice(
-        handWithoutPair.findIndex((t) => t.id === id),
-        1
-      );
-      handWithoutPair.splice(
-        handWithoutPair.findIndex((t) => t.id === id),
-        1
-      );
-      minShanten = Math.min(
-        minShanten,
-        calculateNormalShantenRecursive(handWithoutPair, 0, 0) - 1
-      );
-    }
-  }
-
-  // ヘッドレス（雀頭なし）の場合
-  minShanten = Math.min(
-    minShanten,
-    calculateNormalShantenRecursive(sortedHand, 0, 0)
-  );
-
-  return minShanten;
-};
+// ==============================================================================
+// 公開（export）するメイン関数
+// ==============================================================================
 
 /**
  * 手牌全体のシャンテン数を計算します。
- * @param hand - 13枚または14枚の手牌
- * @returns シャンテン数 (和了形は-1)
  */
 export const getShanten = (hand: Tile[]): number => {
   const tileCount = hand.length;
-  if (tileCount < 1) return 8;
+  if (tileCount % 3 !== 1 && tileCount % 3 !== 2) return 8;
 
   const counts = getTileCounts(hand);
-  let minShanten = 8;
 
-  if (tileCount >= 13) {
-    minShanten = Math.min(
-      getKokushiShanten(counts),
-      getChiitoitsuShanten(counts)
-    );
-  }
-
-  minShanten = Math.min(minShanten, getNormalShanten(hand));
-
-  return minShanten;
+  return Math.min(
+    getNormalShanten(hand),
+    getChiitoitsuShanten(counts),
+    getKokushiShanten(counts)
+  );
 };
 
 /**
  * 和了（あがり）形かどうかを判定します。
- * @param hand - 14枚の手牌
- * @returns 和了形の場合はtrue
  */
 export const isWinningHand = (hand: Tile[]): boolean => {
   if (hand.length !== 14) return false;
@@ -240,8 +280,6 @@ export const isWinningHand = (hand: Tile[]): boolean => {
 
 /**
  * 待ち牌を計算します。
- * @param hand - 13枚の手牌
- * @returns 待ち牌の結果リスト
  */
 export const calculateWaitingTiles = (hand: Tile[]): WaitingResult[] => {
   if (hand.length !== 13 || getShanten(hand) !== 0) {
@@ -257,7 +295,6 @@ export const calculateWaitingTiles = (hand: Tile[]): WaitingResult[] => {
 
     const tempHand = [...hand, tile];
     if (isWinningHand(tempHand)) {
-      // 既存の待ち牌リストになければ追加
       if (
         !waitingTiles.some((res) =>
           res.waitingTiles.some((wt) => wt.id === tile.id)
@@ -267,7 +304,7 @@ export const calculateWaitingTiles = (hand: Tile[]): WaitingResult[] => {
           waitingTiles: [tile],
           waitingType: "Normal Wait",
           waitingTypeJapanese: "通常待ち",
-          description: "",
+          description: `この牌であがれます`,
         });
       }
     }
@@ -275,28 +312,11 @@ export const calculateWaitingTiles = (hand: Tile[]): WaitingResult[] => {
   return waitingTiles;
 };
 
-// --- ヘルパー関数 ---
-const getAllPossibleTiles = (): Tile[] => {
-  const tiles: Tile[] = [];
-  const suits: TileType[] = ["man", "pin", "sou"];
-  suits.forEach((suit) => {
-    for (let i = 1; i <= 9; i++) tiles.push(createTile(suit, i));
-  });
-  const honors: HonorType[] = [
-    "east",
-    "south",
-    "west",
-    "north",
-    "white",
-    "green",
-    "red",
-  ];
-  honors.forEach((honor) => tiles.push(createTile("honor", honor)));
-  return tiles;
-};
-
-// analyzeHand関数は変更なし
+/**
+ * 和了形の手牌を分析します (今回はダミー実装)
+ */
 export const analyzeHand = (hand: Tile[]): ScoringHand | null => {
   if (!isWinningHand(hand)) return null;
-  return null;
+  // TODO: ここに点数計算のロジックを実装
+  return { han: 0, fu: 0, yaku: [], score: 0 };
 };
