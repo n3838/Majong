@@ -1,0 +1,13 @@
+-- CreateTable
+CREATE TABLE "Problem" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
+);
+
+-- CreateTable
+CREATE TABLE "Tile" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "type" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "problemId" INTEGER NOT NULL,
+    CONSTRAINT "Tile_problemId_fkey" FOREIGN KEY ("problemId") REFERENCES "Problem" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);

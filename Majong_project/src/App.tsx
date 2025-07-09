@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Sparkles, RotateCcw, Info, BookOpen } from 'lucide-react';
-import { Tile, WaitingResult } from './types/mahjong';
-import { calculateWaitingTiles, getShanten } from './utils/mahjongLogic';
-import TileSelector from './components/TileSelector';
-import HandDisplay from './components/HandDisplay';
-import WaitingResults from './components/WaitingResults';
+import React, { useState, useEffect } from "react";
+import { Sparkles, RotateCcw, Info, BookOpen } from "lucide-react";
+import { Tile, WaitingResult } from "./types/mahjong";
+import { calculateWaitingTiles, getShanten } from "./utils/mahjongLogic";
+import TileSelector from "./components/TileSelector";
+import HandDisplay from "./components/HandDisplay";
+import WaitingResults from "./components/WaitingResults";
 
 function App() {
   const [hand, setHand] = useState<Tile[]>([]);
@@ -42,38 +42,38 @@ function App() {
   const loadSampleHand = () => {
     // Sample tenpai hand: 一萬二萬三萬四萬五萬六萬七萬八萬東東東白白
     const sampleTiles: Tile[] = [
-      { type: 'man', value: 1, id: 'man-1' },
-      { type: 'man', value: 2, id: 'man-2' },
-      { type: 'man', value: 3, id: 'man-3' },
-      { type: 'man', value: 4, id: 'man-4' },
-      { type: 'man', value: 5, id: 'man-5' },
-      { type: 'man', value: 6, id: 'man-6' },
-      { type: 'man', value: 7, id: 'man-7' },
-      { type: 'man', value: 8, id: 'man-8' },
-      { type: 'honor', value: 'east', id: 'honor-east-1' },
-      { type: 'honor', value: 'east', id: 'honor-east-2' },
-      { type: 'honor', value: 'east', id: 'honor-east-3' },
-      { type: 'honor', value: 'white', id: 'honor-white-1' },
-      { type: 'honor', value: 'white', id: 'honor-white-2' }
+      { type: "man", value: 1, id: "man-1" },
+      { type: "man", value: 2, id: "man-2" },
+      { type: "man", value: 3, id: "man-3" },
+      { type: "man", value: 4, id: "man-4" },
+      { type: "man", value: 5, id: "man-5" },
+      { type: "man", value: 6, id: "man-6" },
+      { type: "man", value: 7, id: "man-7" },
+      { type: "man", value: 8, id: "man-8" },
+      { type: "honor", value: "east", id: "honor-east-1" },
+      { type: "honor", value: "east", id: "honor-east-2" },
+      { type: "honor", value: "east", id: "honor-east-3" },
+      { type: "honor", value: "white", id: "honor-white-1" },
+      { type: "honor", value: "white", id: "honor-white-2" },
     ];
     setHand(sampleTiles);
   };
 
   const getTenpaiStatus = () => {
     if (hand.length !== 13) return null;
-    
+
     const shanten = getShanten(hand);
     if (shanten === 0) {
       return {
         isTenpai: true,
-        message: 'テンパイ / Ready Hand',
-        color: 'bg-green-100 text-green-700 border-green-200'
+        message: "テンパイ / Ready Hand",
+        color: "bg-green-100 text-green-700 border-green-200",
       };
     } else {
       return {
         isTenpai: false,
         message: `ノーテン (${shanten}向聴) / Not Ready (${shanten} away)`,
-        color: 'bg-red-100 text-red-700 border-red-200'
+        color: "bg-red-100 text-red-700 border-red-200",
       };
     }
   };
@@ -91,8 +91,12 @@ function App() {
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">麻雀テンパイ判定ツール</h1>
-                <p className="text-sm text-gray-600">Mahjong Tenpai Detection Tool</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  麻雀テンパイ判定ツール
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Mahjong Tenpai Detection Tool
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -129,22 +133,37 @@ function App() {
         <div className="bg-blue-50 border-b border-blue-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h3 className="font-semibold text-gray-800 mb-3">使い方 / How to Use</h3>
+              <h3 className="font-semibold text-gray-800 mb-3">
+                使い方 / How to Use
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                 <div>
-                  <h4 className="font-medium text-gray-700 mb-2">基本操作 / Basic Operations</h4>
+                  <h4 className="font-medium text-gray-700 mb-2">
+                    基本操作 / Basic Operations
+                  </h4>
                   <ul className="space-y-1">
-                    <li>• 牌を選択して手牌に追加 / Click tiles to add to hand</li>
-                    <li>• 手牌の牌をクリックして削除 / Click hand tiles to remove</li>
-                    <li>• 13枚でテンパイ判定 / 13 tiles for tenpai detection</li>
+                    <li>
+                      • 牌を選択して手牌に追加 / Click tiles to add to hand
+                    </li>
+                    <li>
+                      • 手牌の牌をクリックして削除 / Click hand tiles to remove
+                    </li>
+                    <li>
+                      • 13枚でテンパイ判定 / 13 tiles for tenpai detection
+                    </li>
                     <li>• 向聴数を自動計算 / Automatic shanten calculation</li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-700 mb-2">機能 / Features</h4>
+                  <h4 className="font-medium text-gray-700 mb-2">
+                    機能 / Features
+                  </h4>
                   <ul className="space-y-1">
                     <li>• テンパイ・ノーテン判定 / Tenpai/No-ten detection</li>
-                    <li>• 待ち牌の種類と確率表示 / Waiting tiles with probabilities</li>
+                    <li>
+                      • 待ち牌の種類と確率表示 / Waiting tiles with
+                      probabilities
+                    </li>
                     <li>• 向聴数表示 / Shanten number display</li>
                     <li>• サンプル手牌で練習 / Practice with sample hands</li>
                   </ul>
@@ -162,19 +181,25 @@ function App() {
           <div className="xl:col-span-1">
             <TileSelector onTileSelect={addTile} hand={hand} />
           </div>
-          
+
           {/* Right Column - Hand and Results */}
           <div className="xl:col-span-2 space-y-8">
-            <HandDisplay hand={hand} onRemoveTile={removeTile} onClearHand={clearHand} />
-            
+            <HandDisplay
+              hand={hand}
+              onRemoveTile={removeTile}
+              onClearHand={clearHand}
+            />
+
             {/* Tenpai Status */}
             {hand.length === 13 && tenpaiStatus && (
               <div className="bg-white rounded-xl shadow-lg border border-gray-100">
                 <div className="p-6">
-                  <div className={`flex items-center justify-center p-4 rounded-lg border text-lg font-bold ${tenpaiStatus.color}`}>
+                  <div
+                    className={`flex items-center justify-center p-4 rounded-lg border text-lg font-bold ${tenpaiStatus.color}`}
+                  >
                     {tenpaiStatus.message}
                   </div>
-                  
+
                   {tenpaiStatus.isTenpai ? (
                     <div className="mt-6">
                       <WaitingResults results={waitingResults} />
@@ -182,19 +207,28 @@ function App() {
                   ) : (
                     <div className="mt-6 text-center py-8 text-gray-500">
                       <p className="text-lg mb-2">ノーテンです</p>
-                      <p className="text-sm">この手牌はテンパイしていません。牌を入れ替えてテンパイを目指してください。</p>
-                      <p className="text-sm text-gray-400 mt-2">This hand is not in tenpai. Try replacing tiles to reach tenpai.</p>
+                      <p className="text-sm">
+                        この手牌はテンパイしていません。牌を入れ替えてテンパイを目指してください。
+                      </p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        This hand is not in tenpai. Try replacing tiles to reach
+                        tenpai.
+                      </p>
                     </div>
                   )}
                 </div>
               </div>
             )}
-            
+
             {hand.length < 13 && (
               <div className="bg-gray-50 rounded-xl shadow-lg p-6 border border-gray-100">
                 <div className="text-center py-8 text-gray-500">
-                  <p className="text-lg mb-2">手牌を{13 - hand.length}枚追加してください</p>
-                  <p className="text-sm">Add {13 - hand.length} more tiles to check for tenpai</p>
+                  <p className="text-lg mb-2">
+                    手牌を{13 - hand.length}枚追加してください
+                  </p>
+                  <p className="text-sm">
+                    Add {13 - hand.length} more tiles to check for tenpai
+                  </p>
                 </div>
               </div>
             )}
@@ -207,7 +241,10 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center text-sm text-gray-500">
             <p>麻雀テンパイ判定ツール / Mahjong Tenpai Detection Tool</p>
-            <p className="mt-1">13枚の手牌でテンパイ・ノーテンを正確に判定 / Accurate tenpai detection for 13-tile hands</p>
+            <p className="mt-1">
+              13枚の手牌でテンパイ・ノーテンを正確に判定 / Accurate tenpai
+              detection for 13-tile hands
+            </p>
           </div>
         </div>
       </div>

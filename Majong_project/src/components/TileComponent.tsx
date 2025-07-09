@@ -31,25 +31,25 @@ const TileComponent: React.FC<TileComponentProps> = ({
       case "honor":
         switch (tile.value) {
           case "east":
-            return "Ton.png";
+            return "Honor-East.png";
           case "south":
-            return "Nan.png";
+            return "Honor-South.png";
           case "west":
-            return "Shaa.png";
+            return "Honor-West.png";
           case "north":
-            return "Pei.png";
+            return "Honor-North.png";
           case "white":
-            return "Haku.png";
+            return "Honor-White.png";
           case "green":
-            return "Hatsu.png";
+            return "Honor-Green.png";
           case "red":
-            return "Chun.png";
+            return "Honor-Red.png";
         }
     }
     return ""; // 見つからない場合
   };
 
-  // ここを修正しました
+  // publicフォルダ内のファイルは、サーバーのルートから直接アクセスできます
   const imageUrl = `/Regular/${getFileName()}`;
 
   return (
