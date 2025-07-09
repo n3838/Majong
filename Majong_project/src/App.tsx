@@ -21,7 +21,7 @@ function App() {
       }));
 
       // 呼び出し先を http://localhost:3001 に変更
-      fetch("https://majong.onrender.com//api/hands", {
+      fetch("https://majong-api.onrender.com//api/hands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tiles: tilesForApi }),
