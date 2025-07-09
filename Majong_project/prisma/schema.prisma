@@ -1,30 +1,24 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite" // または "postgresql", "mysql" など
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-// ========== ここからがモデル定義 ==========
-
-// 「何切る」問題のモデル
-model Problem {
-  id    Int    @id @default(autoincrement())
-  tiles Tile[] // この問題はたくさんのTileを持つ、という関係を示す
+// ユーザーが入力した手牌の履歴を保存するモデル
+model HandHistory {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) // 記録された日時
+  tiles     Tile[]   // この手牌に所属する牌の一覧
 }
 
 // 牌のモデル
 model Tile {
-  id        Int     @id @default(autoincrement())
-  type      String  // "man", "pin", "sou", "honor"
-  value     String  // "1" や "east" などを文字列として保存
-
-  // Problemとのリレーションを定義
-  problemId Int     // どのProblemに所属するかを示すID（外部キー）
-  Problem   Problem @relation(fields: [problemId], references: [id])
+  id            Int         @id @default(autoincrement())
+  type          String
+  value         String
+  handHistoryId Int
+  HandHistory   HandHistory @relation(fields: [handHistoryId], references: [id])
 }

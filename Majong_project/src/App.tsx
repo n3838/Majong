@@ -13,6 +13,7 @@ function App() {
 
   useEffect(() => {
     if (hand.length === 13) {
+      // 聴牌計算のロジックはそのまま
       const shanten = getShanten(hand);
       if (shanten === 0) {
         const results = calculateWaitingTiles(hand);
@@ -20,6 +21,24 @@ function App() {
       } else {
         setWaitingResults([]);
       }
+
+      // --- ここからが追加したロジック ---
+      // 入力された手牌をサーバーに送信して記録する
+      fetch("/api/hands", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tiles: hand }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("手牌が記録されました:", data.id);
+        })
+        .catch((error) => {
+          console.error("手牌の記録に失敗しました:", error);
+        });
+      // --- ここまで ---
     } else {
       setWaitingResults([]);
     }

@@ -31,19 +31,19 @@ const TileComponent: React.FC<TileComponentProps> = ({
       case "honor":
         switch (tile.value) {
           case "east":
-            return "Honor-East.png";
+            return "Ton.png";
           case "south":
-            return "Honor-South.png";
+            return "Nan.png";
           case "west":
-            return "Honor-West.png";
+            return "Shaa.png";
           case "north":
-            return "Honor-North.png";
+            return "Pei.png";
           case "white":
-            return "Honor-White.png";
+            return "Haku.png";
           case "green":
-            return "Honor-Green.png";
+            return "Hatsu.png";
           case "red":
-            return "Honor-Red.png";
+            return "Chun.png";
         }
     }
     return ""; // 見つからない場合
