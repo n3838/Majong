@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles, RotateCcw, Info, BookOpen } from "lucide-react";
 import { Tile, WaitingResult } from "./types/mahjong";
 import { calculateWaitingTiles, getShanten } from "./utils/mahjongLogic";
@@ -9,24 +9,19 @@ import WaitingResults from "./components/WaitingResults";
 function App() {
   const [hand, setHand] = useState<Tile[]>([]);
   const [waitingResults, setWaitingResults] = useState<WaitingResult[]>([]);
-  const [showInfo, setShowInfo] = useState(false);
+  const [showInfo, setShowInfo] = useState(false); // ← この state
 
-  // useEffectフックの中のfetchを修正
   useEffect(() => {
     if (hand.length === 13) {
-      // ...
-      const tilesForApi = hand.map((tile) => ({
-        type: tile.type,
-        value: String(tile.value),
-      }));
-
-      // 呼び出し先を http://localhost:3001 に変更
-      fetch("https://majong-api.onrender.com//api/hands", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tiles: tilesForApi }),
-      });
-      // ...
+      const shanten = getShanten(hand);
+      if (shanten === 0) {
+        const results = calculateWaitingTiles(hand);
+        setWaitingResults(results);
+      } else {
+        setWaitingResults([]);
+      }
+    } else {
+      setWaitingResults([]);
     }
   }, [hand]);
 
@@ -45,7 +40,6 @@ function App() {
   };
 
   const loadSampleHand = () => {
-    // Sample tenpai hand: 一萬二萬三萬四萬五萬六萬七萬八萬東東東白白
     const sampleTiles: Tile[] = [
       { type: "man", value: 1, id: "man-1" },
       { type: "man", value: 2, id: "man-2" },
@@ -54,33 +48,30 @@ function App() {
       { type: "man", value: 5, id: "man-5" },
       { type: "man", value: 6, id: "man-6" },
       { type: "man", value: 7, id: "man-7" },
-      { type: "man", value: 8, id: "man-8" },
       { type: "honor", value: "east", id: "honor-east-1" },
       { type: "honor", value: "east", id: "honor-east-2" },
       { type: "honor", value: "east", id: "honor-east-3" },
       { type: "honor", value: "white", id: "honor-white-1" },
       { type: "honor", value: "white", id: "honor-white-2" },
+      { type: "sou", value: 9, id: "sou-9" },
     ];
     setHand(sampleTiles);
   };
 
   const getTenpaiStatus = () => {
     if (hand.length !== 13) return null;
-
     const shanten = getShanten(hand);
-    if (shanten === 0) {
-      return {
-        isTenpai: true,
-        message: "テンパイ / Ready Hand",
-        color: "bg-green-100 text-green-700 border-green-200",
-      };
-    } else {
-      return {
-        isTenpai: false,
-        message: `ノーテン (${shanten}向聴) / Not Ready (${shanten} away)`,
-        color: "bg-red-100 text-red-700 border-red-200",
-      };
-    }
+    return {
+      isTenpai: shanten === 0,
+      message:
+        shanten === 0
+          ? "テンパイ / Ready Hand"
+          : `ノーテン (${shanten}向聴) / Not Ready (${shanten} away)`,
+      color:
+        shanten === 0
+          ? "bg-green-100 text-green-700 border-green-200"
+          : "bg-red-100 text-red-700 border-red-200",
+    };
   };
 
   const tenpaiStatus = getTenpaiStatus();
@@ -113,8 +104,9 @@ function App() {
                 <BookOpen className="w-4 h-4" />
                 サンプル
               </button>
+              {/* --- ★ここが修正点です --- */}
               <button
-                onClick={() => setShowInfo(!showInfo)}
+                onClick={() => setShowInfo(!showInfo)} // onClickイベントを追加
                 className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 title="使い方 / How to use"
               >
@@ -182,20 +174,15 @@ function App() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Left Column - Tile Selector */}
           <div className="xl:col-span-1">
             <TileSelector onTileSelect={addTile} hand={hand} />
           </div>
-
-          {/* Right Column - Hand and Results */}
           <div className="xl:col-span-2 space-y-8">
             <HandDisplay
               hand={hand}
               onRemoveTile={removeTile}
               onClearHand={clearHand}
             />
-
-            {/* Tenpai Status */}
             {hand.length === 13 && tenpaiStatus && (
               <div className="bg-white rounded-xl shadow-lg border border-gray-100">
                 <div className="p-6">
@@ -204,7 +191,6 @@ function App() {
                   >
                     {tenpaiStatus.message}
                   </div>
-
                   {tenpaiStatus.isTenpai ? (
                     <div className="mt-6">
                       <WaitingResults results={waitingResults} />
@@ -215,16 +201,11 @@ function App() {
                       <p className="text-sm">
                         この手牌はテンパイしていません。牌を入れ替えてテンパイを目指してください。
                       </p>
-                      <p className="text-sm text-gray-400 mt-2">
-                        This hand is not in tenpai. Try replacing tiles to reach
-                        tenpai.
-                      </p>
                     </div>
                   )}
                 </div>
               </div>
             )}
-
             {hand.length < 13 && (
               <div className="bg-gray-50 rounded-xl shadow-lg p-6 border border-gray-100">
                 <div className="text-center py-8 text-gray-500">

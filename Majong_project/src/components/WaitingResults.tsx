@@ -1,7 +1,7 @@
-import React from 'react';
-import { Target, TrendingUp, Info } from 'lucide-react';
-import { WaitingResult } from '../types/mahjong';
-import TileComponent from './TileComponent';
+import React from "react";
+import { Target, TrendingUp, Info } from "lucide-react";
+import { WaitingResult } from "../types/mahjong";
+import TileComponent from "./TileComponent";
 
 interface WaitingResultsProps {
   results: WaitingResult[];
@@ -18,8 +18,13 @@ const WaitingResults: React.FC<WaitingResultsProps> = ({ results }) => {
     );
   }
 
-  const totalRemainingTiles = results.reduce((sum, result) => sum + (result.remainingTiles || 0), 0);
-  const averageProbability = results.reduce((sum, result) => sum + (result.probability || 0), 0) / results.length;
+  const totalRemainingTiles = results.reduce(
+    (sum, result) => sum + (result.remainingTiles || 0),
+    0
+  );
+  const averageProbability =
+    results.reduce((sum, result) => sum + (result.probability || 0), 0) /
+    results.length;
 
   return (
     <div>
@@ -41,10 +46,13 @@ const WaitingResults: React.FC<WaitingResultsProps> = ({ results }) => {
           </div>
         </div>
       </div>
-      
+
       <div className="space-y-3">
         {results.map((result, index) => (
-          <div key={index} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <div
+            key={index}
+            className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+          >
             <div className="flex items-center gap-4">
               <div className="flex gap-2">
                 {result.waitingTiles.map((tile, tileIndex) => (
@@ -58,8 +66,12 @@ const WaitingResults: React.FC<WaitingResultsProps> = ({ results }) => {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-gray-800">{result.waitingTypeJapanese}</span>
-                  <span className="text-sm text-gray-500">({result.waitingType})</span>
+                  <span className="font-semibold text-gray-800">
+                    {result.waitingTypeJapanese}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    ({result.waitingType})
+                  </span>
                   {result.probability && (
                     <div className="ml-auto flex items-center gap-2">
                       <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
@@ -77,7 +89,7 @@ const WaitingResults: React.FC<WaitingResultsProps> = ({ results }) => {
           </div>
         ))}
       </div>
-      
+
       <div className="mt-4 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border border-green-200">
         <div className="flex items-center gap-2 mb-2">
           <Target className="w-5 h-5 text-green-600" />
@@ -86,7 +98,8 @@ const WaitingResults: React.FC<WaitingResultsProps> = ({ results }) => {
           </p>
         </div>
         <p className="text-xs text-green-600">
-          Any of these tiles will complete your winning hand. Higher probability tiles are more likely to appear.
+          Any of these tiles will complete your winning hand. Higher probability
+          tiles are more likely to appear.
         </p>
       </div>
     </div>
