@@ -9,10 +9,11 @@ import WaitingResults from "./components/WaitingResults";
 function App() {
   const [hand, setHand] = useState<Tile[]>([]);
   const [waitingResults, setWaitingResults] = useState<WaitingResult[]>([]);
-  const [showInfo, setShowInfo] = useState(false); // ← この state
+  const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
     if (hand.length === 13) {
+      // 聴牌（テンパイ）計算のロジック
       const shanten = getShanten(hand);
       if (shanten === 0) {
         const results = calculateWaitingTiles(hand);
@@ -20,6 +21,44 @@ function App() {
       } else {
         setWaitingResults([]);
       }
+
+      // --- ★ここからが追加するロジックです ---
+      // サーバーに送るために、牌のデータをPrismaのスキーマに合うように整形します
+      const tilesForApi = hand.map((tile) => ({
+        type: tile.type,
+        value: String(tile.value), // valueを文字列に統一します
+      }));
+
+      // 整形したデータをRender上のAPIサーバーに送信します
+      // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+      // ★ 必ず、次の行のURLをあなたのRender APIサーバーのURLに書き換えてください ★
+      // ★ 例: 'https://mahjong-api-xyz.onrender.com/api/hands'             ★
+      // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+      fetch("https://majong-api.onrender.com/api/hands", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tiles: tilesForApi }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            console.error(
+              "サーバーエラー:",
+              response.status,
+              response.statusText
+            );
+            return response.json().then((err) => Promise.reject(err));
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log("手牌が記録されました:", data.id);
+        })
+        .catch((error) => {
+          console.error("手牌の記録に失敗しました:", error);
+        });
+      // --- ★ここまでが追加するロジックです ---
     } else {
       setWaitingResults([]);
     }
@@ -104,9 +143,8 @@ function App() {
                 <BookOpen className="w-4 h-4" />
                 サンプル
               </button>
-              {/* --- ★ここが修正点です --- */}
               <button
-                onClick={() => setShowInfo(!showInfo)} // onClickイベントを追加
+                onClick={() => setShowInfo(!showInfo)}
                 className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 title="使い方 / How to use"
               >
