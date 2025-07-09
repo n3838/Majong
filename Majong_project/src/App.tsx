@@ -11,36 +11,22 @@ function App() {
   const [waitingResults, setWaitingResults] = useState<WaitingResult[]>([]);
   const [showInfo, setShowInfo] = useState(false);
 
+  // useEffectフックの中のfetchを修正
   useEffect(() => {
     if (hand.length === 13) {
-      // 聴牌計算のロジックはそのまま
-      const shanten = getShanten(hand);
-      if (shanten === 0) {
-        const results = calculateWaitingTiles(hand);
-        setWaitingResults(results);
-      } else {
-        setWaitingResults([]);
-      }
+      // ...
+      const tilesForApi = hand.map((tile) => ({
+        type: tile.type,
+        value: String(tile.value),
+      }));
 
-      // --- ここからが追加したロジック ---
-      // 入力された手牌をサーバーに送信して記録する
-      fetch("/api/hands", {
+      // 呼び出し先を http://localhost:3001 に変更
+      fetch("https://majong.onrender.com//api/hands", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ tiles: hand }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("手牌が記録されました:", data.id);
-        })
-        .catch((error) => {
-          console.error("手牌の記録に失敗しました:", error);
-        });
-      // --- ここまで ---
-    } else {
-      setWaitingResults([]);
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tiles: tilesForApi }),
+      });
+      // ...
     }
   }, [hand]);
 
