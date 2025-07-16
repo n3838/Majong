@@ -1,15 +1,35 @@
 import express from "express";
-import cors from "cors"; // corsをインポート
+import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const app = express();
-const port = process.env.PORT || 3001; // Renderが指定するポートで起動
+const port = process.env.PORT || 3001;
 
-app.use(cors()); // すべてのドメインからの通信を許可
+app.use(cors());
 app.use(express.json());
 
-// 手牌を記録するAPI
+// --- ★ここからが新しいAPIです ---
+// 記録されたすべての手牌履歴を取得する
+app.get("/api/hands/history", async (req, res) => {
+  try {
+    const history = await prisma.handHistory.findMany({
+      orderBy: {
+        createdAt: "desc", // 新しいものが上にくるように降順でソート
+      },
+      include: {
+        tiles: true, // 各履歴に関連する牌のデータも一緒に取得
+      },
+    });
+    res.json(history);
+  } catch (error) {
+    console.error("履歴の取得に失敗しました:", error);
+    res.status(500).json({ error: "サーバーでエラーが発生しました。" });
+  }
+});
+// --- ★ここまでが新しいAPIです ---
+
+// 手牌を記録するAPI（これは変更なし）
 app.post("/api/hands", async (req, res) => {
   try {
     const { tiles } = req.body;
@@ -29,5 +49,5 @@ app.post("/api/hands", async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`✅ APIサーバーがポート ${port} で起動しました`);
+  console.log(`✅ APIサーバーが http://localhost:${port} で起動しました`);
 });
