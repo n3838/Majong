@@ -8,14 +8,14 @@ interface HandDisplayProps {
   hand: Tile[];
   onRemoveTile: (index: number) => void;
   onClearHand?: () => void;
-  loadSampleHand?: () => void; // ★ エラーを解消するため、プロパティ名を元に戻しました
+  loadRandomHand?: () => void; // ★ プロパティ名を「loadRandomHand」に修正しました
 }
 
 const HandDisplay: React.FC<HandDisplayProps> = ({
   hand,
   onRemoveTile,
   onClearHand,
-  loadSampleHand,
+  loadRandomHand,
 }) => {
   const sortedHand = sortTiles(hand);
   const shanten = hand.length === 13 ? getShanten(hand) : null;
@@ -64,11 +64,11 @@ const HandDisplay: React.FC<HandDisplayProps> = ({
           )}
         </div>
 
-        {/* ボタンのテキストと呼び出す関数を変更 */}
+        {/* 呼び出す関数を「loadRandomHand」に修正しました */}
         <div className="flex items-center gap-2">
-          {loadSampleHand && (
+          {loadRandomHand && (
             <button
-              onClick={loadSampleHand}
+              onClick={loadRandomHand}
               className="flex items-center gap-2 px-3 py-2 bg-blue-100 hover:bg-blue-200 
                                 text-blue-700 rounded-lg transition-colors text-sm font-medium"
             >

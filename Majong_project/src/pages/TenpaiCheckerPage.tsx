@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { Tile, WaitingResult } from "../types/mahjong";
-import { calculateWaitingTiles, getShanten } from "../utils/mahjongLogic";
+import {
+  calculateWaitingTiles,
+  getShanten,
+  generateRandomHand,
+} from "../utils/mahjongLogic";
 import TileSelector from "../components/TileSelector";
 import HandDisplay from "../components/HandDisplay";
 import WaitingResults from "../components/WaitingResults";
@@ -24,11 +28,7 @@ const TenpaiCheckerPage = () => {
         value: String(tile.value),
       }));
 
-      // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-      // ★ 必ず、次の行のURLをあなたのRender APIサーバーのURLに書き換えてください ★
-      // ★ 例: 'https://mahjong-api-xyz.onrender.com/api/hands'             ★
-      // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-      fetch("https://majong-api.onrender.com/api/hands", {
+      fetch("https://<あなたのAPIサーバーのURL>.onrender.com/api/hands", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,23 +57,10 @@ const TenpaiCheckerPage = () => {
     setHand([]);
   };
 
-  const loadSampleHand = () => {
-    const sampleTiles: Tile[] = [
-      { type: "man", value: 1, id: "man-1" },
-      { type: "man", value: 2, id: "man-2" },
-      { type: "man", value: 3, id: "man-3" },
-      { type: "man", value: 4, id: "man-4" },
-      { type: "man", value: 5, id: "man-5" },
-      { type: "man", value: 6, id: "man-6" },
-      { type: "man", value: 7, id: "man-7" },
-      { type: "honor", value: "east", id: "honor-east-1" },
-      { type: "honor", value: "east", id: "honor-east-2" },
-      { type: "honor", value: "east", id: "honor-east-3" },
-      { type: "honor", value: "white", id: "honor-white-1" },
-      { type: "honor", value: "white", id: "honor-white-2" },
-      { type: "sou", value: 9, id: "sou-9" },
-    ];
-    setHand(sampleTiles);
+  // ★ サンプル読み込み関数を、ランダム生成関数に修正しました
+  const loadRandomHand = () => {
+    const randomHand = generateRandomHand();
+    setHand(randomHand);
   };
 
   const tenpaiStatus = (() => {
@@ -82,6 +69,10 @@ const TenpaiCheckerPage = () => {
     return {
       isTenpai: shanten === 0,
       message: shanten === 0 ? "テンパイ" : `ノーテン (${shanten}向聴)`,
+      color:
+        shanten === 0
+          ? "bg-green-100 text-green-700"
+          : "bg-red-100 text-red-700",
     };
   })();
 
@@ -91,19 +82,25 @@ const TenpaiCheckerPage = () => {
         <TileSelector onTileSelect={addTile} hand={hand} />
       </div>
       <div className="xl:col-span-2 space-y-8">
+        {/* ★ HandDisplayに渡すプロパティ名を「loadRandomHand」に修正しました */}
         <HandDisplay
           hand={hand}
           onRemoveTile={removeTile}
           onClearHand={clearHand}
-          loadSampleHand={loadSampleHand}
+          loadRandomHand={loadRandomHand}
         />
-        {hand.length === 13 && tenpaiStatus?.isTenpai && (
-          <WaitingResults results={waitingResults} />
-        )}
-        {hand.length === 13 && !tenpaiStatus?.isTenpai && (
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 text-center py-8 text-gray-500">
-            <p className="text-lg mb-2">{tenpaiStatus?.message}</p>
-            <p className="text-sm">この手牌はテンパイしていません。</p>
+        {hand.length === 13 && tenpaiStatus && (
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <div
+              className={`p-4 rounded-lg text-center font-bold text-lg ${tenpaiStatus.color}`}
+            >
+              {tenpaiStatus.message}
+            </div>
+            {tenpaiStatus.isTenpai && (
+              <div className="mt-6">
+                <WaitingResults results={waitingResults} />
+              </div>
+            )}
           </div>
         )}
       </div>
