@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Tile, WaitingResult } from "../types/mahjong";
+// generateRandomHand を正しくインポートします
 import {
   calculateWaitingTiles,
   getShanten,
@@ -28,6 +29,7 @@ const TenpaiCheckerPage = () => {
         value: String(tile.value),
       }));
 
+      // APIへの送信ロジックは変更なし
       fetch("https://<あなたのAPIサーバーのURL>.onrender.com/api/hands", {
         method: "POST",
         headers: {
@@ -35,9 +37,23 @@ const TenpaiCheckerPage = () => {
         },
         body: JSON.stringify({ tiles: tilesForApi }),
       })
-        .then((response) => response.json())
-        .then((data) => console.log("手牌が記録されました:", data.id))
-        .catch((error) => console.error("手牌の記録に失敗しました:", error));
+        .then((response) => {
+          if (!response.ok) {
+            console.error(
+              "サーバーエラー:",
+              response.status,
+              response.statusText
+            );
+            return response.json().then((err) => Promise.reject(err));
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log("手牌が記録されました:", data.id);
+        })
+        .catch((error) => {
+          console.error("手牌の記録に失敗しました:", error);
+        });
     } else {
       setWaitingResults([]);
     }
@@ -57,8 +73,11 @@ const TenpaiCheckerPage = () => {
     setHand([]);
   };
 
-  // ★ サンプル読み込み関数を、ランダム生成関数に修正しました
+  // --- ★ここが修正のポイントです ---
+  // この関数が「ランダム」ボタンから呼び出されます
   const loadRandomHand = () => {
+    // 以前の固定サンプル手牌の記述を削除し、
+    // generateRandomHand関数を呼び出すように修正しました。
     const randomHand = generateRandomHand();
     setHand(randomHand);
   };
@@ -82,7 +101,7 @@ const TenpaiCheckerPage = () => {
         <TileSelector onTileSelect={addTile} hand={hand} />
       </div>
       <div className="xl:col-span-2 space-y-8">
-        {/* ★ HandDisplayに渡すプロパティ名を「loadRandomHand」に修正しました */}
+        {/* HandDisplayに渡すプロパティ名をloadRandomHandに変更します */}
         <HandDisplay
           hand={hand}
           onRemoveTile={removeTile}
