@@ -36,7 +36,7 @@ const HistoryPage = () => {
     // ★ 必ず、次の行のURLをあなたのRender APIサーバーのURLに書き換えてください ★
     // ★ 例: 'https://mahjong-api-xyz.onrender.com/api/hands/history'    ★
     // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-    fetch("https://<あなたのAPIサーバーのURL>.onrender.com/api/hands/history")
+    fetch("https://majong-api.onrender.com/api/hands/history")
       .then((res) => {
         if (!res.ok) {
           throw new Error(`サーバーエラー: ${res.status}`);
