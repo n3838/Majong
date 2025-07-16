@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { List, Clock } from "lucide-react";
+import { List, Clock, RefreshCw } from "lucide-react"; // RefreshCwアイコンをインポート
 import { Tile, TileType, HonorType } from "../types/mahjong";
 import TileComponent from "../components/TileComponent";
 import { sortTiles, createTile } from "../utils/mahjongLogic";
@@ -26,12 +26,17 @@ const HistoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  // --- ★ここからが修正のポイントです ---
+  // データを取得するロジックを、再利用可能な関数にまとめます
+  const fetchHistory = () => {
+    setLoading(true); // 更新中であることがわかるようにloadingをtrueに
+    setError(null); // エラー表示をリセット
+
     // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
     // ★ 必ず、次の行のURLをあなたのRender APIサーバーのURLに書き換えてください ★
     // ★ 例: 'https://mahjong-api-xyz.onrender.com/api/hands/history'    ★
     // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-    fetch("https://majong-api.onrender.com/api/hands/history")
+    fetch("https://<あなたのAPIサーバーのURL>.onrender.com/api/hands/history")
       .then((res) => {
         if (!res.ok) {
           throw new Error(`サーバーエラー: ${res.status}`);
@@ -39,22 +44,17 @@ const HistoryPage = () => {
         return res.json();
       })
       .then((data: ApiHistoryItem[]) => {
-        // --- ★ここが修正のポイントです ---
-        // APIから受け取ったデータを、フロントエンドで使える形式に変換します
         const formattedHistory: FrontendHistoryItem[] = data.map((item) => ({
           id: item.id,
           createdAt: item.createdAt,
           tiles: item.tiles.map((dbTile) => {
-            // valueが数字か字牌かを判定して、正しい型に変換します
             const isHonor = isNaN(parseInt(dbTile.value, 10));
             const value = isHonor
               ? (dbTile.value as HonorType)
               : Number(dbTile.value);
-            // createTileを使って、idを含む正しいTileオブジェクトを再生成します
             return createTile(dbTile.type as TileType, value);
           }),
         }));
-
         setHistory(formattedHistory);
       })
       .catch((err) => {
@@ -66,7 +66,13 @@ const HistoryPage = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, []); // このフックはページ読み込み時に一度だけ実行されます
+  };
+
+  // ページが最初に読み込まれた時に一度だけデータを取得します
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+  // --- ★ここまでが修正のポイントです ---
 
   if (loading) {
     return (
@@ -79,16 +85,33 @@ const HistoryPage = () => {
   if (error) {
     return (
       <div className="text-center p-8 text-red-500 bg-red-50 rounded-lg">
-        {error}
+        <p>{error}</p>
+        <button
+          onClick={fetchHistory}
+          className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+        >
+          再試行
+        </button>
       </div>
     );
   }
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-      <div className="flex items-center gap-3 mb-6">
-        <List className="w-6 h-6 text-indigo-600" />
-        <h2 className="text-xl font-bold text-gray-800">入力履歴</h2>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <List className="w-6 h-6 text-indigo-600" />
+          <h2 className="text-xl font-bold text-gray-800">入力履歴</h2>
+        </div>
+        {/* ★ 更新ボタンを追加 */}
+        <button
+          onClick={fetchHistory}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium"
+          disabled={loading}
+        >
+          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          {loading ? "更新中..." : "更新"}
+        </button>
       </div>
 
       {history.length === 0 ? (
