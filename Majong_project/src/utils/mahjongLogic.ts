@@ -320,3 +320,43 @@ export const analyzeHand = (hand: Tile[]): ScoringHand | null => {
   // TODO: ここに点数計算のロジックを実装
   return { han: 0, fu: 0, yaku: [], score: 0 };
 };
+
+export const generateRandomHand = (): Tile[] => {
+  const allTiles: Tile[] = [];
+  const suits: TileType[] = ["man", "pin", "sou"];
+  const honors: HonorType[] = [
+    "east",
+    "south",
+    "west",
+    "north",
+    "white",
+    "green",
+    "red",
+  ];
+
+  // 各牌を4枚ずつ、牌山（全136枚）を作成
+  suits.forEach((suit) => {
+    for (let i = 1; i <= 9; i++) {
+      for (let j = 0; j < 4; j++) {
+        allTiles.push(createTile(suit, i));
+      }
+    }
+  });
+
+  // --- ★ここが修正点です ---
+  honors.forEach((honor) => {
+    for (let j = 0; j < 4; j++) {
+      // 1番目の引数を 'honor' に修正しました
+      allTiles.push(createTile("honor", honor));
+    }
+  });
+
+  // 配列をシャッフル (Fisher-Yates algorithm)
+  for (let i = allTiles.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allTiles[i], allTiles[j]] = [allTiles[j], allTiles[i]];
+  }
+
+  // シャッフルした牌山から、先頭の13枚を返す
+  return allTiles.slice(0, 13);
+};

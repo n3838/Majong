@@ -8,7 +8,7 @@ interface HandDisplayProps {
   hand: Tile[];
   onRemoveTile: (index: number) => void;
   onClearHand?: () => void;
-  loadSampleHand?: () => void; // loadSampleHandプロパティを追加
+  loadSampleHand?: () => void; // ★ エラーを解消するため、プロパティ名を元に戻しました
 }
 
 const HandDisplay: React.FC<HandDisplayProps> = ({
@@ -21,10 +21,7 @@ const HandDisplay: React.FC<HandDisplayProps> = ({
   const shanten = hand.length === 13 ? getShanten(hand) : null;
 
   const getShantenStatus = () => {
-    if (hand.length !== 13) {
-      return null;
-    }
-
+    if (hand.length !== 13) return null;
     if (shanten === 0) {
       return {
         text: "テンパイ / Ready Hand",
@@ -38,12 +35,10 @@ const HandDisplay: React.FC<HandDisplayProps> = ({
         icon: <AlertCircle className="w-4 h-4" />,
       };
     }
-
     return null;
   };
 
   const handleTileClick = (tile: Tile) => {
-    // 元の配列から対応する牌の最初のインデックスを見つけて削除
     const originalIndex = hand.findIndex((t) => t.id === tile.id);
     if (originalIndex !== -1) {
       onRemoveTile(originalIndex);
@@ -69,7 +64,7 @@ const HandDisplay: React.FC<HandDisplayProps> = ({
           )}
         </div>
 
-        {/* ★ サンプル読み込みとリセットのボタンをここに追加 */}
+        {/* ボタンのテキストと呼び出す関数を変更 */}
         <div className="flex items-center gap-2">
           {loadSampleHand && (
             <button
@@ -78,7 +73,7 @@ const HandDisplay: React.FC<HandDisplayProps> = ({
                                 text-blue-700 rounded-lg transition-colors text-sm font-medium"
             >
               <BookOpen className="w-4 h-4" />
-              サンプル
+              ランダム
             </button>
           )}
           {onClearHand && hand.length > 0 && (
@@ -110,23 +105,11 @@ const HandDisplay: React.FC<HandDisplayProps> = ({
                   className="cursor-pointer hover:scale-105 hover:shadow-lg transition-all duration-200 
                            hover:ring-2 hover:ring-red-300 hover:ring-opacity-50"
                 />
-                <div
-                  className="absolute inset-0 bg-red-500 bg-opacity-0 group-hover:bg-opacity-10 
-                              rounded-lg transition-all duration-200 pointer-events-none"
-                />
               </div>
             ))}
           </div>
         )}
       </div>
-
-      {hand.length > 0 && (
-        <div className="mt-3 text-center">
-          <p className="text-xs text-gray-500">
-            牌をクリックして削除 / Click tiles to remove them
-          </p>
-        </div>
-      )}
     </div>
   );
 };
