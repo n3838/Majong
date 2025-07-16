@@ -30,7 +30,7 @@ const TenpaiCheckerPage = () => {
       }));
 
       // APIへの送信ロジックは変更なし
-      fetch("https://<あなたのAPIサーバーのURL>.onrender.com/api/hands", {
+      fetch("https://majong-api.onrender.com/api/hands", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
