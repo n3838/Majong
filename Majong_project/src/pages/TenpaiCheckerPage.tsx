@@ -28,7 +28,7 @@ const TenpaiCheckerPage = () => {
       // ★ 必ず、次の行のURLをあなたのRender APIサーバーのURLに書き換えてください ★
       // ★ 例: 'https://mahjong-api-xyz.onrender.com/api/hands'             ★
       // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-      fetch("https://<あなたのAPIサーバーのURL>.onrender.com/api/hands", {
+      fetch("https://majong-api.onrender.com/api/hands", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
